@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/CrossView">
+        <file>Resources/palette/colors_dmc_pm.txt</file>
+        <file>Resources/palette/colors_madeira_pm.txt</file>
+        <file>Resources/pic/open.png</file>
+        <file>Resources/pic/palette.png</file>
+        <file>Resources/pic/save.png</file>
+        <file>Resources/pic/zoomin.png</file>
+        <file>Resources/pic/zoomout.png</file>
+    </qresource>
+</RCC>
