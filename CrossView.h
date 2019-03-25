@@ -26,20 +26,23 @@ private:
 	QVector<int> crossSizes;
 	int currentSizeIndex;
 	void updateCurrentCrossSize();
+
 private slots:
 	void onLoad();
 	void onPaletteSelectionChanged(const QModelIndex &current, const QModelIndex &previous);
 	void onPaletteContextMenuRequested(const QPoint &pos);
+    void onCrossCurrentChanged(const QModelIndex &current, const QModelIndex &previous);
 	void onCrossContextMenuRequested(const QPoint &pos);	
 	void onHighlightColorFromCrossView();
 	void onHighlightColorFromPaletteView();
 	void onShowPalette();
 	void onZoomIn();
-	void onZoomOut();
+    void onZoomOut();
 signals:
 	void toLoadSheme(const QString& filename);
 	void toPaletteColorSelected(const int& row);
 	void toPaletteLayoutChanged();
 	void toCrossLayoutChanged();
-	void toHighLightColor(const QModelIndex& index);
+    void toHighLightColor(const QModelIndex& index);
+    void toSelectColor(const QModelIndex& index);
 };

@@ -19,12 +19,12 @@ public:
 	QModelIndex mapFromSource(const QModelIndex &sourceIndex) const;
 	QModelIndex mapToSource(const QModelIndex &proxyIndex) const;
 
-	
+    bool isHighLight() const;
 private:
 	int mRowCount, mColumnCount;
 	
 public slots:
-	void onFormMaps();
-	void onLayoutChanged();
+    void onFormMaps();
+    void onLayoutChanged();
 };
 

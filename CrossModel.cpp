@@ -279,6 +279,24 @@ int CrossModel::paletteColumnEndIndex() const
 void CrossModel::onPaletteColorSelected(const int& row)
 {
 	mPaletteSelectedIndex = row - paletteRowStartIndex();
+
+    if (mIsHighLight)
+    {
+        const QString colorName = mUsedColors.at(mPaletteSelectedIndex).first.name;
+
+        const auto iter = std::find_if(mPaletteDmc.begin(), mPaletteDmc.end(), [&colorName](color_info const& elem)
+        {
+            return elem.name == colorName;
+        });
+
+        const int newPaletteHighLightIndex = std::distance(mPaletteDmc.begin(), iter);
+
+        if (mPaletteHighLightIndex!=newPaletteHighLightIndex)
+        {
+            mPaletteHighLightIndex=newPaletteHighLightIndex;
+            emit toCrossLayoutChanged();
+        }
+    }
 }
 
 void CrossModel::changeHighLight()
@@ -291,9 +309,9 @@ void CrossModel::setHighLight(const bool& value)
 	mIsHighLight = value;
 }
 
-void CrossModel::onHighLightColor(const QModelIndex& index)
+void CrossModel::onHighLightColor(const QModelIndex& select_index)
 {
-	const int row = index.row();
+    const int row = select_index.row();
 
 	if (row >= paletteRowStartIndex())
 	{
@@ -307,26 +325,85 @@ void CrossModel::onHighLightColor(const QModelIndex& index)
 
 		if (iter != mPaletteDmc.end())
 		{
-			mPaletteHighLightIndex = std::distance(mPaletteDmc.begin(), iter);
+            const int newPaletteHighLightIndex = std::distance(mPaletteDmc.begin(), iter);
+            if (mIsHighLight && (mPaletteHighLightIndex == newPaletteHighLightIndex))
+                mIsHighLight = false;
+            else
+            {
+                mPaletteHighLightIndex = newPaletteHighLightIndex;
+                mIsHighLight = true;
+            }
+
+            emit toPaletteLayoutChanged();
+            emit toCrossLayoutChanged();
 		}
 	}
 	else
 	{
-		const int column = index.column();
+        const int column = select_index.column();
 		mPaletteHighLightIndex = mData.at(row).at(column);
 
-		const QString colorName = mPaletteDmc.at(mPaletteHighLightIndex).name;
-		const auto iter = std::find_if(mUsedColors.begin(), mUsedColors.end(), [&colorName](QPair<color_info, int> const& elem)
-		{
-			return elem.first.name == colorName;
-		});
+        if (mIsHighLight)
+            mIsHighLight = false;
+        else
+            mIsHighLight = true;
 
-		if (iter != mUsedColors.end())
-		{
-			mPaletteSelectedIndex = std::distance(mUsedColors.begin(), iter);
-			emit toPaletteLayoutChanged();
-		}
+        emit toPaletteLayoutChanged();
+        emit toCrossLayoutChanged();
 	}	
 
-	mIsHighLight = true;
+    //mIsHighLight = true;
+}
+
+bool CrossModel::isHighLight() const
+{
+    return mIsHighLight;
+}
+
+void CrossModel::onSelectColor(const QModelIndex& select_index)
+{
+    const int row = select_index.row();
+
+    if (row >= paletteRowStartIndex())
+    {
+        const int colorIndex = row - paletteRowStartIndex();
+        const QString colorName = mUsedColors.at(colorIndex).first.name;
+
+        const auto iter = std::find_if(mPaletteDmc.begin(), mPaletteDmc.end(), [&colorName](color_info const& elem)
+        {
+            return elem.name == colorName;
+        });
+
+        if (iter != mPaletteDmc.end())
+        {
+            const int newPaletteHighLightIndex = std::distance(mPaletteDmc.begin(), iter);
+            if (newPaletteHighLightIndex!=mPaletteHighLightIndex)
+            {
+                mPaletteHighLightIndex = newPaletteHighLightIndex;
+
+                if (mIsHighLight)
+                {
+                    const auto palette_index=index(paletteRowStartIndex()+mPaletteHighLightIndex);
+                    emit toChangePaletteCurrent(palette_index,QItemSelectionModel::Rows);
+                    emit toCrossLayoutChanged();
+                }
+            }
+        }
+    }
+    else
+    {
+        const int column = select_index.column();
+        const int newPaletteHighLightIndex = mData.at(row).at(column);
+        if (newPaletteHighLightIndex!=mPaletteHighLightIndex)
+        {
+            mPaletteHighLightIndex = newPaletteHighLightIndex;
+
+            if (mIsHighLight)
+            {
+                const auto palette_index=index(paletteRowStartIndex()+mPaletteHighLightIndex);
+                emit toChangePaletteCurrent(palette_index,QItemSelectionModel::Rows);
+                emit toCrossLayoutChanged();
+            }
+        }
+    }
 }

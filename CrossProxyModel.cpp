@@ -76,5 +76,14 @@ void CrossProxyModel::onFormMaps()
 
 void CrossProxyModel::onLayoutChanged()
 {
-	emit layoutChanged();
+    emit layoutChanged();
+}
+
+bool CrossProxyModel::isHighLight() const
+{
+    CrossModel* crossModel = dynamic_cast<CrossModel*>(sourceModel());
+    if (crossModel == nullptr)
+        return false;
+
+    return crossModel->isHighLight();
 }

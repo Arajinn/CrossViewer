@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractItemModel>
+#include <QItemSelectionModel>
 #include <QColor>
 
 class CrossModel : public QAbstractItemModel
@@ -28,7 +29,7 @@ public:
 	int rowCount(const QModelIndex &parent = QModelIndex()) const;
 	int columnCount(const QModelIndex &parent = QModelIndex()) const;
 	QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-	QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex index(int row, int column=0, const QModelIndex &parent = QModelIndex()) const;
 	QModelIndex parent(const QModelIndex &index) const;
 
 	int dataRowStartIndex() const;
@@ -45,6 +46,8 @@ public:
 		
 	void changeHighLight();
 	void setHighLight(const bool& value);
+
+    bool isHighLight() const;
 private:
 	QVector<QVector<int>> mData;
 	QVector<QPair<color_info,int>> mUsedColors;
@@ -58,9 +61,12 @@ private:
 public slots:
 	void onLoadSheme(const QString& fileName);
 	void onPaletteColorSelected(const int& row);
-	void onHighLightColor(const QModelIndex& index);
+    void onHighLightColor(const QModelIndex& select_index);
+    void onSelectColor(const QModelIndex& select_index);
 signals:
 	void toUpdateMaps();
 	void toPaletteLayoutChanged();
+    void toChangePaletteCurrent(const QModelIndex& index, QItemSelectionModel::SelectionFlags command);
+    void toCrossLayoutChanged();
 };
 

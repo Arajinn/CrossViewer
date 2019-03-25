@@ -38,12 +38,18 @@ CrossView::CrossView(QWidget *parent)
 	QObject::connect(ui->actionZoomOut, &QAction::triggered, this, &CrossView::onZoomOut);
 
 	QObject::connect(ui->CrossTableView, &QTableView::customContextMenuRequested, this, &CrossView::onCrossContextMenuRequested);
-	QObject::connect(ui->PaletteTableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &CrossView::onPaletteSelectionChanged);
+    QObject::connect(ui->CrossTableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &CrossView::onCrossCurrentChanged);
+
+    QObject::connect(ui->PaletteTableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &CrossView::onPaletteSelectionChanged);
+    QObject::connect(sourceModel,&CrossModel::toChangePaletteCurrent,ui->PaletteTableView->selectionModel(),
+                     static_cast<void (QItemSelectionModel::*)(const QModelIndex &index, QItemSelectionModel::SelectionFlags command)>(&QItemSelectionModel::select));
 	QObject::connect(ui->PaletteTableView, &QTableView::customContextMenuRequested, this, &CrossView::onPaletteContextMenuRequested);	
 
 	QObject::connect(this, &CrossView::toPaletteLayoutChanged, paletteProxyModel, &PaletteProxyModel::onLayoutChanged);
-	QObject::connect(this, &CrossView::toCrossLayoutChanged, crossProxyModel, &CrossProxyModel::onLayoutChanged);
+    QObject::connect(this, &CrossView::toCrossLayoutChanged, crossProxyModel, &CrossProxyModel::onLayoutChanged);
+
 	QObject::connect(sourceModel, &CrossModel::toPaletteLayoutChanged, paletteProxyModel, &PaletteProxyModel::onLayoutChanged);
+    QObject::connect(sourceModel, &CrossModel::toCrossLayoutChanged, crossProxyModel, &CrossProxyModel::onLayoutChanged);
 
 	QObject::connect(sourceModel, &CrossModel::toUpdateMaps, crossProxyModel, &CrossProxyModel::onFormMaps);
 	QObject::connect(sourceModel, &CrossModel::toUpdateMaps, paletteProxyModel, &PaletteProxyModel::onFormMaps);
@@ -51,6 +57,7 @@ CrossView::CrossView(QWidget *parent)
 	QObject::connect(this, &CrossView::toLoadSheme, sourceModel, &CrossModel::onLoadSheme);	
 	QObject::connect(this, &CrossView::toPaletteColorSelected, sourceModel, &CrossModel::onPaletteColorSelected);
 	QObject::connect(this, &CrossView::toHighLightColor, sourceModel, &CrossModel::onHighLightColor);
+    QObject::connect(this, &CrossView::toSelectColor, sourceModel, &CrossModel::onSelectColor);
 
 	crossSizes.resize(8);
 	crossSizes[0] = 4;
@@ -87,8 +94,14 @@ void CrossView::onPaletteContextMenuRequested(const QPoint &pos)
 	if (index.isValid())
 	{		
 		QMenu* contextMenu = new QMenu(this);
-		QAction* highlightAction = new QAction("Highlight color", this);
-		contextMenu->addAction(highlightAction);
+		QAction* highlightAction = new QAction("Highlight color", this);		
+        highlightAction->setCheckable(true);
+
+        PaletteProxyModel* model = dynamic_cast<PaletteProxyModel*>(ui->PaletteTableView->model());
+        if (model)
+            highlightAction->setChecked(model->isHighLight());
+
+        contextMenu->addAction(highlightAction);
 		QObject::connect(highlightAction, &QAction::triggered, this, &CrossView::onHighlightColorFromPaletteView);
 
 		const QPoint point = ui->PaletteTableView->viewport()->mapToGlobal(pos);
@@ -125,6 +138,13 @@ void CrossView::onCrossContextMenuRequested(const QPoint &pos)
 	{
 		QMenu* contextMenu = new QMenu(this);
 		QAction* highlightAction = new QAction("Highlight color", this);
+
+        highlightAction->setCheckable(true);
+
+        CrossProxyModel* model = dynamic_cast<CrossProxyModel*>(ui->CrossTableView->model());
+        if (model)
+            highlightAction->setChecked(model->isHighLight());
+
 		contextMenu->addAction(highlightAction);
 		QObject::connect(highlightAction, &QAction::triggered, this, &CrossView::onHighlightColorFromCrossView);
 
@@ -158,4 +178,9 @@ void CrossView::updateCurrentCrossSize()
 	const int size = crossSizes.at(currentSizeIndex);
 	ui->CrossTableView->horizontalHeader()->setDefaultSectionSize(size);
 	ui->CrossTableView->verticalHeader()->setDefaultSectionSize(size);
+}
+
+void CrossView::onCrossCurrentChanged(const QModelIndex &current, const QModelIndex &/*previous*/)
+{
+    emit toSelectColor(current);
 }

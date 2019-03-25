@@ -156,3 +156,12 @@ void PaletteProxyModel::onLayoutChanged()
 {
 	emit layoutChanged();
 }
+
+bool PaletteProxyModel::isHighLight() const
+{
+    CrossModel* crossModel = dynamic_cast<CrossModel*>(sourceModel());
+    if (crossModel == nullptr)
+        return false;
+
+    return crossModel->isHighLight();
+}

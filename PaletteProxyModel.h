@@ -19,6 +19,8 @@ public:
 	QModelIndex parent(const QModelIndex &index) const;
 	QModelIndex mapFromSource(const QModelIndex &sourceIndex) const;
 	QModelIndex mapToSource(const QModelIndex &proxyIndex) const;	
+
+    bool isHighLight() const;
 private:
 	QVector<QPair<QPersistentModelIndex, QPersistentModelIndex>> mappingFromSourceSortByIndex;
 	QVector<QPair<QPersistentModelIndex, QPersistentModelIndex>> mappingToSourceSortByIndex;
@@ -27,6 +29,6 @@ private:
 
 public slots:
 	void onFormMaps();
-	void onLayoutChanged();
+    void onLayoutChanged();
 };
 
